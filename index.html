@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>When Do Discrete Actions Make Good Continuous Controllers?</title>
+<meta name="description" content="Simple binned action tokens match or beat continuous action heads, from single-task policies to VLAs, in simulation and on real robots. The obstacle is factorization error, not precision.">
+<meta property="og:title" content="When Do Discrete Actions Make Good Continuous Controllers?">
+<meta property="og:description" content="Binned action tokens match or beat continuous action heads. The obstacle is factorization error, not precision.">
+<meta property="og:image" content="https://iscoyizj.github.io/discrete-action-website/static/img/og.jpg">
+<meta property="og:url" content="https://iscoyizj.github.io/discrete-action-website/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%231E2935'/%3E%3Crect x='3' y='3' width='4' height='4' fill='%23EAB77D'/%3E%3Crect x='9' y='3' width='4' height='4' fill='%2385B6D4'/%3E%3Crect x='3' y='9' width='4' height='4' fill='%23C56A16'/%3E%3Crect x='9' y='9' width='4' height='4' fill='%232471A3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,500;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="static/css/site.css?v=20261013c">
+</head>
+<body>
+
+<header class="hero">
+  <h1>When Do Discrete Actions Make Good Continuous Controllers?</h1>
+  <ul class="authors">
+    <li>Zeji Yi<sup>1,2,†</sup></li>
+    <li>Soham Dasgupta<sup>1,2,†</sup></li>
+    <li>Xinyang Zhang<sup>2</sup></li>
+    <li>Koushil Sreenath<sup>2</sup></li>
+    <li>Guannan Qu<sup>1</sup></li>
+    <li>Xi Chen<sup>2</sup></li>
+    <li>Max Simchowitz<sup>1,2,*</sup></li>
+    <li>Guanya Shi<sup>1,2,*</sup></li>
+  </ul>
+  <p class="affils"><span><sup>1</sup>Carnegie Mellon University</span><span><sup>2</sup>Amazon FAR (Frontier AI &amp; Robotics)</span></p>
+  <p class="authnote"><sup>†</sup>Work done during internship at Amazon FAR. <sup>*</sup>Equal advising.</p>
+  <div class="links">
+    <a class="btn" href="static/paper.pdf">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 2h7l4 4v12H5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 2v4h4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+      Paper
+    </a>
+    <a class="btn" href="#video">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 4v12l10-6z" fill="currentColor"/></svg>
+      Video
+    </a>
+    <span class="btn btn-off" title="Code and checkpoints will be released upon publication">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7 6-4 4 4 4M13 6l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Code (soon)
+    </span>
+  </div>
+</header>
+
+<main>
+
+<figure class="teaser">
+  <img src="static/img/figs/teaser.webp" width="3200" height="1597" alt="Paper Figure 1. (a) The four action heads on two axes, continuous or discrete and one pass or iterative, with their strengths and weaknesses. (b) Start and end frames of three real-robot tasks with success bars. (c) Success rates on RoboMimic, RoboCasa and LIBERO for the four heads.">
+  <figcaption>(a) The four action heads. (b) Real-robot tasks. (c) Success in simulation, from single-task RoboMimic policies to VLA-scale RoboCasa and LIBERO. Orange is discrete and blue is continuous; lighter shades are the flow heads.</figcaption>
+</figure>
+
+<section class="col" id="abstract">
+  <h2>Abstract</h2>
+  <p>Modern AI models like LLMs predict discrete tokens, yet today's robotic foundation models represent actions as continuous vectors. We ask whether continuous action parametrizations are really better than discrete ones. We compare single-step regression and multi-step flow variants of both continuous and discrete policies, in from-scratch single-task training and multi-task VLA training, in simulation and on real hardware.</p>
+  <p>In every regime, discrete action prediction, even naive uniform-bin quantization, <b>matches or beats continuous-action policies</b> in task success. The challenge for discrete policies is <b>not precision but factorization error</b>: predicting tokens independently across time and action dimensions. With iterative computation through discrete flow, or distribution sharpening through classifier-free guidance, discrete flow policies turn this weakness into a strength and react more to changes within a chunk. Finally, adding explicit geometry, such as corruption processes that mimic continuous flow matching, does not give consistent gains. Robot actions may not need design choices different from other AI domains.</p>
+</section>
+
+<section class="col-wide" id="video">
+  <div class="video-head">
+    <h2>Video</h2>
+    <div class="tabs" role="tablist" aria-label="Video">
+      <button role="tab" aria-selected="true" data-video="teaser">Teaser, 1.7 min</button>
+      <button role="tab" aria-selected="false" data-video="explainer">Explainer, 5 min</button>
+    </div>
+  </div>
+  <div class="player">
+    <video id="player" controls playsinline preload="metadata" poster="static/videos/teaser_poster.jpg?v=20261013c">
+      <source src="static/videos/teaser.mp4?v=20261013c" type="video/mp4">
+      <track kind="subtitles" srclang="en" label="English" src="static/videos/teaser.vtt?v=20261013c" default>
+    </video>
+  </div>
+</section>
+
+<section class="col-wide" id="heads">
+  <h2>Four action heads, one backbone</h2>
+  <p class="lead">Every policy shares the same backbone and data. Only the action head changes: it predicts continuous numbers or discrete tokens, in one pass or over several refinement steps. Hover over a head to see how it works.</p>
+  <ul class="heads">
+    <li data-head="DF" tabindex="0"><canvas class="glyph" aria-hidden="true"></canvas><p class="glyph-cap" aria-hidden="true"></p><span class="chip chip-flow" style="--c:var(--DF)">DF</span><b>Discrete flow</b><span>Refines a chunk of action tokens over several steps.</span></li>
+    <li data-head="CF" tabindex="0"><canvas class="glyph" aria-hidden="true"></canvas><p class="glyph-cap" aria-hidden="true"></p><span class="chip chip-flow" style="--c:var(--CF)">CF</span><b>Continuous flow</b><span>Turns noise into actions over several steps, as in π0.</span></li>
+    <li data-head="DR" tabindex="0"><canvas class="glyph" aria-hidden="true"></canvas><p class="glyph-cap" aria-hidden="true"></p><span class="chip" style="--c:var(--DR)">DR</span><b>Discrete regression</b><span>Picks a bin for every token in one pass, each on its own.</span></li>
+    <li data-head="CR" tabindex="0"><canvas class="glyph" aria-hidden="true"></canvas><p class="glyph-cap" aria-hidden="true"></p><span class="chip" style="--c:var(--CR)">CR</span><b>Continuous regression</b><span>Regresses the action chunk in one pass.</span></li>
+  </ul>
+</section>
+
+<!-- ============================== Finding 1 ============================== -->
+<section class="finding" id="finding-1">
+  <div class="col">
+    <h2><span class="fno">Finding 1</span>Discrete actions match or beat continuous actions</h2>
+    <p class="lead">We test the four heads from single-task policies trained from scratch to a PaliGemma VLA in simulation and on a real robot.</p>
+    <ul class="points">
+      <li>Discrete flow matches continuous flow in every setting.</li>
+      <li>Discrete regression beats continuous regression, even when trained from scratch.</li>
+      <li>Binning does not cost precision: action errors are about the same for all heads.</li>
+    </ul>
+  </div>
+
+  <div class="col-wide">
+    <div class="card" id="success">
+      <div class="card-bar">
+        <div class="tabs" role="tablist" aria-label="Benchmark">
+          <button role="tab" aria-selected="true" data-set="robomimic">Single task, from scratch</button>
+          <button role="tab" aria-selected="false" data-set="vla">VLA in simulation</button>
+          <button role="tab" aria-selected="false" data-set="real">Real robot</button>
+        </div>
+        <div class="seg" id="cfg-seg" role="group" aria-label="Guidance" hidden>
+          <span>Guidance</span>
+          <button type="button" aria-pressed="false" data-cfg="cfg0">CFG 0</button>
+          <button type="button" aria-pressed="true" data-cfg="cfg2">CFG 2</button>
+        </div>
+      </div>
+      <div class="legend" aria-hidden="true">
+        <span><i class="sw sw-DF"></i>DF</span><span><i class="sw sw-CF"></i>CF</span><span><i class="sw sw-DR"></i>DR</span><span><i class="sw sw-CR"></i>CR</span>
+      </div>
+      <svg class="chart" id="success-svg" role="img" aria-label="Grouped bar chart of task success rate for the four heads. The same numbers are in the table below the chart."></svg>
+      <p class="chart-note" id="success-note"></p>
+      <details class="table-view"><summary>Show as a table</summary><div id="success-table"></div></details>
+    </div>
+  </div>
+
+  <div class="col-wide">
+    <div class="card" id="rollouts">
+      <div class="card-bar">
+        <h3>Rollouts</h3>
+        <div class="tabs" role="tablist" aria-label="Task">
+          <button role="tab" aria-selected="true" data-task="bottle">Throw bottles into bins</button>
+          <button role="tab" aria-selected="false" data-task="pen_cap">Open pen cap</button>
+          <button role="tab" aria-selected="false" data-task="turn_mug">Turn mug up</button>
+          <button role="tab" aria-selected="false" data-task="robocasa">RoboCasa (sim)</button>
+        </div>
+      </div>
+      <div class="grid4" id="grid"></div>
+      <p class="chart-note" id="rollout-note"></p>
+    </div>
+  </div>
+
+  <div class="col">
+    <h3 class="sub">Why: discrete heads keep the expert's variation</h3>
+    <p>Both charts compare each head to the demonstrations. A ratio of 1 means the head varies as much as the expert. Continuous heads sit well below 1: they smooth the motion and under-react.</p>
+  </div>
+  <div class="col-wide pair">
+    <div class="card"><h3>Variation within a chunk</h3><p class="card-sub"><span class="term" tabindex="0" data-term="jerk">Jerk ratio</span> on 3,000 held-out RoboCasa chunks. Dot: median. Line: middle half.</p><svg class="chart" id="jerk-svg" role="img" aria-label="Median jerk ratio: DF 0.50, CF 0.34, DR 0.74, CR 0.07. Expert is 1."></svg></div>
+    <div class="card"><h3>Following the input</h3><p class="card-sub"><span class="term" tabindex="0" data-term="resp">State responsiveness</span>: how much the chunk changes between two nearby RoboCasa states, divided by how much the expert's changes. Median over state pairs.</p><svg class="chart" id="resp-svg" role="img" aria-label="Median state responsiveness relative to the expert: DF 0.70, CF 0.63, DR 0.94, CR 0.58."></svg></div>
+  </div>
+</section>
+
+<!-- ============================== Finding 2 ============================== -->
+<section class="finding" id="finding-2">
+  <div class="col">
+    <h2><span class="fno">Finding 2</span>The problem is factorization error, not precision</h2>
+    <p class="lead">Discrete regression predicts each token on its own. When a scene allows two behaviors, the tokens can disagree.</p>
+    <ul class="points">
+      <li>Independent tokens can mix two valid behaviors into an action no demonstration contains.</li>
+      <li>Guidance sharpens each token and lifts discrete regression on RoboCasa from 25.8% to 50.2%.</li>
+      <li>Discrete flow refines the tokens together and cuts mixed-mode tokens by 5.28×.</li>
+    </ul>
+  </div>
+
+  <div class="col-wide">
+    <div class="card scene-card" id="pt-switch">
+      <div class="scene-grid">
+        <svg class="scene" id="pt-scene" viewBox="20 110 380 380" role="img" aria-label="Push-T scene. The pusher can go around the T on side A or side B. Discrete regression's chunk follows side B, then cuts across the T to side A."></svg>
+        <div class="scene-side">
+          <h3>Push-T: two ways around the T</h3>
+          <p class="card-sub">The pusher starts on the T's mirror line, so going around either side works.</p>
+          <div class="keys"><span><i class="ln" style="--c:var(--modeA)"></i>Mode A</span><span><i class="ln" style="--c:var(--modeB)"></i>Mode B</span><span><i class="ln thick" style="--c:var(--route)"></i>Discrete regression's chunk</span></div>
+          <h4>Discrete regression: probability of each mode, per step</h4>
+          <p class="card-sub">Every step decides on its own.</p>
+          <svg class="prob" id="pt-prob" viewBox="0 0 600 262" role="img" aria-label="Mode B is more likely for the first seven steps of the chunk, mode A after that."></svg>
+          <ul class="beats">
+            <li data-at="4">Steps before the switch: plausible under mode B</li>
+            <li data-at="11">Steps after the switch: plausible under mode A</li>
+            <li data-at="15.9" class="bad">Together: a chunk no demonstrator would make</li>
+          </ul>
+          <p class="callout" data-at="15.9"><b>Factorization error:</b> each token is plausible, the chunk is not.</p>
+          <div class="scene-ctl">
+            <button type="button" class="play" data-play>Replay</button>
+            <label><span class="sr-only">Step in the chunk</span><input type="range" min="0" max="16" step="0.01" value="16" data-scrub></label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-wide">
+    <div class="card factor">
+      <div class="factor-text">
+        <h3>(c) The same mix-up within one step</h3>
+        <p>Demonstrations go one of two ways, <span class="mA">A</span> or <span class="mB">B</span>. One token picks x, another picks y. Each is exactly right on its own, yet decoding them independently lands on the mixed cells.</p>
+        <label for="q">Share of mode A <output id="q-out">89.6%</output></label>
+        <input id="q" type="range" min="50" max="100" step="0.01" value="89.61">
+        <p class="factor-readout" aria-live="polite"><b id="wrong-mass">18.6%</b> of actions mix the two modes. <button type="button" class="linkbtn" data-q="89.61">89.6%</button> is the paper's Push-T example (Figure 5c).</p>
+      </div>
+      <svg id="factor-svg" viewBox="0 0 420 400" role="img" aria-label="Two by two grid of decoded actions: two valid cells for modes A and B, and two mixed cells in red."></svg>
+    </div>
+  </div>
+
+  <div class="col-wide">
+    <div class="card scene-card" id="pt-consensus">
+      <div class="scene-grid">
+        <svg class="scene" id="cs-scene" viewBox="20 110 380 380" role="img" aria-label="Push-T scene with the discrete flow chunk rebuilt from its tokens at the selected round."></svg>
+        <div class="scene-side">
+          <h3>How refinement makes tokens agree</h3>
+          <p class="card-sub">One chip per step in the chunk: its side, A or B.</p>
+          <svg class="chips" id="cs-chips" viewBox="0 0 576 190" role="img" aria-label="Token chips for discrete regression and for discrete flow at the selected round."></svg>
+          <p class="cs-note" id="cs-note" aria-live="polite"></p>
+          <div class="keys"><span><i class="sq" style="--c:var(--modeA)"></i>side A</span><span><i class="sq" style="--c:var(--modeB)"></i>side B</span><span><i class="sq" style="--c:var(--other)"></i>random token</span><span><i class="sq ring"></i>flipped</span></div>
+          <div class="scene-ctl">
+            <button type="button" class="play" data-play>Play</button>
+            <div class="rounds" role="group" aria-label="Discrete flow round">
+              <button type="button" data-r="0">Start</button><button type="button" data-r="1">1</button><button type="button" data-r="2">2</button><button type="button" data-r="3">3</button><button type="button" data-r="4">4</button><button type="button" data-r="5">5</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="chart-note">The rounds are drawn schematically on the Push-T state of paper Figure 5: side A chips sit on a real continuous flow chunk, side B chips on the mode B route.</p>
+    </div>
+  </div>
+
+  <div class="col-wide pair">
+    <div class="card"><h3>Fix 1: guidance</h3><p class="card-sub">RoboCasa success, pooled over three suites.</p><svg class="chart" id="fixes-svg" role="img" aria-label="RoboCasa pooled success: DF 53.9%, CF 52.3%, DR 25.8% without guidance and 50.2% with guidance, CR 38.8%."></svg></div>
+    <div class="card"><h3>Fix 2: iterative refinement</h3><p class="card-sub">Mixed-mode tokens per chunk, on 4,000 validation observations, no guidance.</p><svg class="chart" id="nfe-svg" role="img" aria-label="Mixed-mode tokens per chunk for discrete flow: 3.62 at 1 step, 4.94 at 2, 1.50 at 5, 0.57 at 10, 0.22 at 20. Discrete regression: 3.01."></svg></div>
+  </div>
+</section>
+
+<!-- ============================== Finding 3 ============================== -->
+<section class="finding" id="finding-3">
+  <div class="col">
+    <h2><span class="fno">Finding 3</span>Plain uniform bins are competitive</h2>
+    <p class="lead">Flat bins do not tell the model that bin 200 sits next to bin 201. Adding that geometry back helps little.</p>
+    <ul class="points">
+      <li>A distance-aware corruption path for discrete flow does not beat the uniform one.</li>
+      <li>Learned tokenizers (nFSQ, FAST, RVQ) do not beat uniform bins either.</li>
+      <li>Autoregressive decoding, over uniform bins or FAST tokens, stays below discrete flow.</li>
+      <li>The model learns the geometry itself: neighboring bins get similar embeddings.</li>
+    </ul>
+  </div>
+  <div class="col-wide pair">
+    <div class="card"><h3>Best RoboCasa result by action representation</h3><p class="card-sub">Pooled success at each row's best setting. Hatched: discrete flow (DF). Solid: autoregressive (AR), one time step after another.</p><svg class="chart" id="tok-svg" role="img" aria-label="Discrete flow: uniform bins 53.9%, metric corruption path 52.8%, nFSQ 52.4%, FAST 46.2%, RVQ 38.2%. Autoregressive: uniform bins 48.3%, FAST 48.2%."></svg></div>
+    <div class="card"><h3>Neighboring bins look alike</h3><p class="card-sub">Median cosine similarity between bin output embeddings, by distance between bins.</p><svg class="chart" id="cos-svg" role="img" aria-label="Cosine similarity starts near 0.4 for adjacent bins and falls to about zero at 30 bins apart, for both DR and DF."></svg></div>
+  </div>
+  <div class="col">
+    <p class="callout">Our findings suggest that the bottleneck is not geometric priors or precision, but factorization error.</p>
+  </div>
+</section>
+
+<section class="col" id="cite">
+  <h2>BibTeX</h2>
+  <div class="bib">
+    <button type="button" class="copy" data-copy="#bibtex">Copy</button>
+<pre id="bibtex"><code>@misc{yi2026discrete,
+  title        = {When Do Discrete Actions Make Good Continuous Controllers?},
+  author       = {Yi, Zeji and Dasgupta, Soham and Zhang, Xinyang and Sreenath, Koushil and
+                  Qu, Guannan and Chen, Xi and Simchowitz, Max and Shi, Guanya},
+  year         = {2026},
+  howpublished = {\url{https://iscoyizj.github.io/discrete-action-website/}}
+}</code></pre>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <p>Code and model checkpoints will be released upon publication.</p>
+</footer>
+
+<div class="tip" id="tip" role="tooltip" hidden></div>
+<div class="peek" id="peek" aria-hidden="true"><div class="peek-vid"></div></div>
+<dialog class="lightbox" id="lightbox" aria-label="Enlarged figure">
+  <button type="button" class="lb-close" aria-label="Close">×</button>
+  <img alt="">
+</dialog>
+
+<script src="static/js/pusht-data.js?v=20261013c" defer></script>
+<script src="static/js/site.js?v=20261013c" defer></script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+WEBVTT
+
+00:00:00.400 --> 00:00:03.449
+Four policies. Same data. Same backbone.
+
+00:00:03.449 --> 00:00:08.458
+Two predict continuous actions. Two predict discrete tokens. Can you tell which?
+
+00:00:08.458 --> 00:00:10.828
+The discrete ones are on par or better.
+
+00:00:13.198 --> 00:00:18.558
+The only difference is the action head: continuous or discrete, one pass or iterative.
+
+00:00:18.558 --> 00:00:23.423
+The discrete heads cut each number into 512 bins and predict tokens.
+
+00:00:24.993 --> 00:00:26.650
+So how do they compare?
+
+00:00:26.650 --> 00:00:30.980
+On a real robot, each discrete head matches or beats its continuous one.
+
+00:00:30.980 --> 00:00:35.081
+Same story in simulation, from single-task to VLA scale.
+
+00:00:36.651 --> 00:00:42.742
+So why do discrete heads work? It's not precision. End-effector error is about the same for all four.
+
+00:00:42.742 --> 00:00:46.953
+But discrete actions stay sharp: jerk ratio closer to the expert's.
+
+00:00:46.953 --> 00:00:50.786
+And they follow the input: responsiveness closer to the expert's.
+
+00:00:50.786 --> 00:00:56.512
+Discrete regression comes closest to the expert on both. So why does it still trail both flow heads?
+
+00:00:57.882 --> 00:01:01.504
+The problem is not precision: its tokens can disagree.
+
+00:01:01.504 --> 00:01:04.921
+On Push-T, going around either side of the T works.
+
+00:01:04.921 --> 00:01:08.686
+Each step picks its mode on its own, so the chunk switches midway.
+
+00:01:08.686 --> 00:01:10.746
+We call this factorization error.
+
+00:01:10.746 --> 00:01:14.969
+Discrete flow fixes it: it refines its tokens over several rounds.
+
+00:01:14.969 --> 00:01:18.920
+Each round sees the tokens chosen so far, so they come to agree.
+
+00:01:20.890 --> 00:01:24.946
+So, when do discrete actions make good continuous controllers?
+
+00:01:24.946 --> 00:01:26.556
+When their tokens agree.
+
+00:01:26.556 --> 00:01:28.686
+Simple bins are precise enough.
+
+00:01:28.686 --> 00:01:34.211
+The hard part is getting tokens to agree, and guidance and iterative refinement solve much of it.
+
+00:01:34.211 --> 00:01:38.857
+This puts robot actions in the same token framework as language and vision.
