@@ -204,7 +204,6 @@ h3.sub{font-size:21px;margin-bottom:8px}
 .factor-readout{margin:14px 0 0;font-size:15.5px}
 .factor-readout b{color:var(--wrong);font-size:26px;font-weight:800;margin-right:4px}
 input[type=range]{width:100%;accent-color:var(--DR);margin:6px 0 0}
-.linkbtn{border:0;background:none;padding:0;font:inherit;color:var(--CR);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
 #factor-svg{width:100%;height:auto;display:block}
 #factor-svg text{font-family:var(--sans)}
 @media (max-width:860px){.factor{grid-template-columns:1fr;padding:18px}}

@@ -685,10 +685,6 @@ const DF_ODD = 9, DF_FLIP = 3;                                                  
     big.textContent = (2 * q * (1 - q) * 100).toFixed(1) + "%";
   }
   range.addEventListener("input", draw);
-  $$("[data-q]").forEach(b => b.addEventListener("click", () => {
-    const a = +range.value, t = +b.dataset.q;
-    tween(420, k => { range.value = a + (t - a) * k; draw(); });
-  }));
   draw();
 })();
 
