@@ -284,9 +284,9 @@ const PEEK = (() => {
 const SUCCESS = {"robomimic":{"Can":{"cfg0":{"DF":[100.0,99.0,100.0],"CF":[100.0,99.0,100.0],"DR":[87.5,83.8,90.4],"CR":[100.0,99.0,100.0]}},"Square":{"cfg0":{"DF":[90.6,87.3,93.1],"CF":[98.4,96.6,99.3],"DR":[90.6,87.3,93.1],"CR":[81.2,77.1,84.8]}},"Tool Hang":{"cfg0":{"DF":[87.0,83.3,90.0],"CF":[85.0,81.1,88.2],"DR":[15.6,12.4,19.6],"CR":[12.5,9.6,16.2]}},"Transport":{"cfg0":{"DF":[66.0,61.2,70.5],"CF":[63.0,58.1,67.7],"DR":[46.9,42.0,51.8],"CR":[28.1,23.9,32.8]}}},"vla":{"RoboCasa\natomic, seen":{"cfg0":{"DF":[78.0,73.3,82.6],"CF":[76.9,73.1,80.6],"DR":[55.4,53.7,57.1],"CR":[63.0,57.6,68.4]},"cfg2":{"DF":[75.4,72.2,78.6],"CF":[78.1,76.8,79.5],"DR":[75.9,73.6,78.2]}},"RoboCasa\ncomposite, seen":{"cfg0":{"DF":[38.5,34.6,42.5],"CF":[37.7,36.6,38.8],"DR":[10.4,8.4,12.4],"CR":[23.1,20.6,25.6]},"cfg2":{"DF":[41.2,37.8,44.7],"CF":[37.3,35.3,39.2],"DR":[33.1,29.2,37.0]}},"RoboCasa\ncomposite, unseen":{"cfg0":{"DF":[37.3,33.5,41.1],"CF":[36.9,31.4,42.3],"DR":[11.9,9.6,14.1],"CR":[27.3,23.2,31.4]},"cfg2":{"DF":[42.3,37.2,47.3],"CF":[39.4,37.1,41.6],"DR":[35.2,32.3,38.2]}},"LIBERO\nObject":{"cfg0":{"DF":[95.6,93.1,97.2],"CF":[96.5,94.2,97.9],"DR":[67.0,62.2,71.5],"CR":[89.5,86.1,92.2]},"cfg2":{"DF":[97.0,94.8,98.3],"CF":[94.6,91.8,96.4],"DR":[92.5,89.4,94.7]}},"LIBERO-10":{"cfg0":{"DF":[78.1,73.7,81.9],"CF":[80.9,76.7,84.5],"DR":[55.0,50.0,59.9],"CR":[73.7,69.1,77.8]},"cfg2":{"DF":[79.2,74.9,82.9],"CF":[79.3,75.0,83.0],"DR":[76.2,71.7,80.2]}}},"real":{"Throw bottles\ninto bins":{"cfg0":{"CF":[90.0],"DF":[90.0],"DR":[80.0],"CR":[60.0]}},"Open\npen cap":{"cfg0":{"CF":[70.0],"DF":[70.0],"DR":[40.0],"CR":[40.0]}},"Turn\nmug up":{"cfg0":{"CF":[70.0],"DF":[80.0],"DR":[50.0],"CR":[30.0]}}}};
 const NOTES = {
   robomimic: "Trained from scratch, no pretrained backbone. Discrete regression beats continuous regression on Square, Tool Hang and Transport. Error bars: 68% intervals.",
-  vla_cfg2: "With guidance, discrete regression beats continuous regression on all five benchmarks. Continuous regression has no guidance. Dashed outlines show the other setting.",
-  vla_cfg0: "Without guidance, discrete regression falls behind. Switch to CFG 2 to see what guidance does (Finding 2). Dashed outlines show the other setting.",
-  real: "Real-robot success per head and task, as in paper Figure 1."
+  vla_cfg2: "With guidance, discrete regression beats continuous regression on all five benchmarks. Continuous regression has no guidance. Dashed outlines show the other setting. Error bars: ± one standard deviation over five evaluation seeds.",
+  vla_cfg0: "Without guidance, discrete regression falls behind. Switch to CFG 2 to see what guidance does (Finding 2). Dashed outlines show the other setting. Error bars: ± one standard deviation over five evaluation seeds.",
+  real: "Real-robot success per head and task over 10 trials, as in paper Figure 1."
 };
 
 (function successChart() {
@@ -412,7 +412,7 @@ const chipHTML = h => `<span class="chip${FLOW[h] ? " chip-flow" : ""}" style="-
       pick(Math.max(0, outcomes.indexOf(1)));
       cell.append(clip, row); grid.append(cell);
     });
-    note.textContent = "Five recorded trials per head, top camera. Green trials succeeded and red ones failed; pick a trial under each clip.";
+    note.textContent = "Each head ran 10 trials per task, and the success chart counts all 10. Five of them are shown here, top camera. Green trials succeeded and red ones failed; pick a trial under each clip.";
   }
   function sim() {
     grid.className = "grid4 sim"; grid.replaceChildren();
