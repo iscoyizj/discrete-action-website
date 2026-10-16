@@ -39,170 +39,170 @@ Everything else is matched: the backbone, the data, and the action-head size.
 00:01:14.424 --> 00:01:20.240
 We test them at three scales. First, single-task policies trained from scratch on RoboMimic.
 
-00:01:20.240 --> 00:01:27.674
-Then a PaliGemma VLA, post-trained on RoboCasa, DROID, and MimicGen, and tested on RoboCasa and LIBERO.
+00:01:20.240 --> 00:01:27.750
+Then a PaliGemma VLA, post-trained on RoboCasa, LIBERO-plus, and DROID, and tested on RoboCasa and LIBERO.
 
-00:01:27.674 --> 00:01:29.813
+00:01:27.750 --> 00:01:29.889
 And three tasks on a real robot.
 
-00:01:29.813 --> 00:01:33.287
+00:01:29.889 --> 00:01:33.363
 Discrete flow matches continuous flow across the board.
 
-00:01:33.287 --> 00:01:38.097
+00:01:33.363 --> 00:01:38.173
 It holds up on the precision-heavy RoboMimic tasks, Tool Hang and Transport.
 
-00:01:38.097 --> 00:01:41.635
+00:01:38.173 --> 00:01:41.711
 On the real robot, it ties or wins on all three tasks.
 
-00:01:41.635 --> 00:01:49.185
+00:01:41.711 --> 00:01:49.261
 Even the simplest discrete head, one-pass classification over bins, beats continuous regression on nearly every benchmark.
 
-00:01:50.555 --> 00:01:52.831
+00:01:50.631 --> 00:01:52.907
 So are discrete heads just more precise?
 
-00:01:52.831 --> 00:01:53.995
+00:01:52.907 --> 00:01:54.071
 Not quite.
 
-00:01:53.995 --> 00:01:59.583
+00:01:54.071 --> 00:01:59.659
 On held-out demonstrations, end-effector error is within three millimeters for all four heads.
 
-00:01:59.583 --> 00:02:06.989
+00:01:59.659 --> 00:02:07.065
 And it does not track success: continuous regression has the lowest error, but trails both flow heads by over ten points.
 
-00:02:06.989 --> 00:02:10.049
+00:02:07.065 --> 00:02:10.125
 What differs is how much the predicted actions vary.
 
-00:02:10.049 --> 00:02:14.264
+00:02:10.125 --> 00:02:14.340
 Jerk measures how fast the motion changes, using four steps in a row.
 
-00:02:14.264 --> 00:02:17.911
+00:02:14.340 --> 00:02:17.987
 The jerk ratio divides the predicted jerk by the expert's.
 
-00:02:17.911 --> 00:02:20.220
+00:02:17.987 --> 00:02:20.296
 Below one means the chunk is smoothed out.
 
-00:02:20.220 --> 00:02:23.931
+00:02:20.296 --> 00:02:24.007
 Continuous regression sits far below one: it over-smooths.
 
-00:02:23.931 --> 00:02:26.512
+00:02:24.007 --> 00:02:26.588
 Discrete regression comes closest to one.
 
-00:02:26.512 --> 00:02:32.330
+00:02:26.588 --> 00:02:32.406
 Jerk looks inside one chunk. Responsiveness looks across chunks, with the same kind of ratio.
 
-00:02:32.330 --> 00:02:38.126
+00:02:32.406 --> 00:02:38.202
 Take two nearby states, and divide how much a policy's chunk changes by how much the expert's does.
 
-00:02:38.126 --> 00:02:43.255
+00:02:38.202 --> 00:02:43.331
 Discrete regression is almost as responsive as the expert, with discrete flow next.
 
-00:02:43.255 --> 00:02:45.820
+00:02:43.331 --> 00:02:45.896
 Both continuous heads respond much less.
 
-00:02:47.190 --> 00:02:52.924
+00:02:47.266 --> 00:02:53.000
 If discrete regression responds so well, why does it still fall behind both flow heads? There is a catch.
 
-00:02:52.924 --> 00:02:56.777
+00:02:53.000 --> 00:02:56.853
 Take Push-T: the pusher starts right on the T's mirror line.
 
-00:02:56.777 --> 00:03:00.317
+00:02:56.853 --> 00:03:00.393
 So going around either side works: mode A or mode B.
 
-00:03:00.317 --> 00:03:04.464
+00:03:00.393 --> 00:03:04.540
 Discrete regression picks each step on its own, without looking at the others.
 
-00:03:04.464 --> 00:03:08.096
+00:03:04.540 --> 00:03:08.172
 Early in the chunk, most of the probability is on mode B.
 
-00:03:08.096 --> 00:03:10.737
+00:03:08.172 --> 00:03:10.813
 Around step seven, mode A takes over.
 
-00:03:10.737 --> 00:03:14.873
+00:03:10.813 --> 00:03:14.949
 So the chunk follows mode B first, then switches to mode A partway.
 
-00:03:14.873 --> 00:03:16.942
+00:03:14.949 --> 00:03:17.018
 The switch cuts straight across the T.
 
-00:03:16.942 --> 00:03:19.105
+00:03:17.018 --> 00:03:19.181
 Each choice is plausible on its own.
 
-00:03:19.105 --> 00:03:22.423
+00:03:19.181 --> 00:03:22.499
 Together, they form a chunk no demonstrator would make.
 
-00:03:22.423 --> 00:03:24.513
+00:03:22.499 --> 00:03:24.589
 We call this factorization error.
 
-00:03:25.883 --> 00:03:27.803
+00:03:25.959 --> 00:03:27.879
 We find two ways to fix it.
 
-00:03:27.803 --> 00:03:30.226
+00:03:27.879 --> 00:03:30.302
 The first is classifier-free guidance.
 
-00:03:30.226 --> 00:03:36.295
-Guidance runs the model twice, with and without the observation, and boosts what the observation adds.
+00:03:30.302 --> 00:03:36.844
+Guidance runs the action head twice, with and without the observation, and boosts what the observation adds.
 
-00:03:36.295 --> 00:03:39.512
+00:03:36.844 --> 00:03:40.061
 Different tokens in a chunk can favor different modes.
 
-00:03:39.512 --> 00:03:42.529
+00:03:40.061 --> 00:03:43.078
 Without guidance, a few tokens pick the other mode.
 
-00:03:42.529 --> 00:03:46.946
+00:03:43.078 --> 00:03:47.495
 Each token picks on its own, so the chunk mixes modes, and the task fails.
 
-00:03:46.946 --> 00:03:51.236
+00:03:47.495 --> 00:03:51.785
 Strong guidance commits every token to one mode, so the whole chunk agrees.
 
-00:03:51.236 --> 00:03:54.580
+00:03:51.785 --> 00:03:55.129
 Guidance nearly doubles the success of discrete regression.
 
-00:03:54.580 --> 00:03:58.488
+00:03:55.129 --> 00:03:59.037
 Yet it does not make actions more precise: the error stays the same.
 
-00:03:58.488 --> 00:04:03.332
+00:03:59.037 --> 00:04:03.881
 So guidance works by fixing factorization error, not by improving precision.
 
-00:04:03.332 --> 00:04:06.103
+00:04:03.881 --> 00:04:06.652
 The second fix is iterative computation.
 
-00:04:06.103 --> 00:04:12.458
+00:04:06.652 --> 00:04:13.007
 Discrete flow refines its tokens over several rounds, and each round sees the tokens chosen so far.
 
-00:04:12.458 --> 00:04:17.884
+00:04:13.007 --> 00:04:18.433
 This fixes the factorization error, and discrete flow reaches the highest success of any head.
 
-00:04:17.884 --> 00:04:23.776
+00:04:18.433 --> 00:04:24.325
 And it keeps its action diversity: the tokens agree, but the draws do not collapse to one answer.
 
-00:04:25.146 --> 00:04:32.395
+00:04:25.695 --> 00:04:32.944
 So far, every discrete head used plain uniform bins. A common worry is that such flat bins have no sense of space.
 
-00:04:32.395 --> 00:04:40.671
+00:04:32.944 --> 00:04:41.220
 To the model, bin 200 and bin 201 are just unrelated labels, so it might memorize answers and generalize poorly.
 
-00:04:40.671 --> 00:04:47.535
+00:04:41.220 --> 00:04:48.084
 We tried telling it which bins are close, with a distance-aware corruption path, label smoothing, and learned tokenizers.
 
-00:04:47.535 --> 00:04:50.646
+00:04:48.084 --> 00:04:51.195
 None beats plain uniform bins with discrete flow.
 
-00:04:50.646 --> 00:04:58.210
+00:04:51.195 --> 00:04:58.759
 The model already learns the geometry: neighboring bins get similar output embeddings, and the similarity fades with distance.
 
-00:04:59.580 --> 00:05:04.557
+00:05:00.129 --> 00:05:05.106
 Let's put it all together. When do discrete actions make good continuous controllers?
 
-00:05:04.557 --> 00:05:06.167
+00:05:05.106 --> 00:05:06.716
 When their tokens agree.
 
-00:05:06.167 --> 00:05:08.297
+00:05:06.716 --> 00:05:08.846
 Simple bins are precise enough.
 
-00:05:08.297 --> 00:05:13.822
+00:05:08.846 --> 00:05:14.371
 The hard part is getting tokens to agree, and guidance and iterative refinement solve much of it.
 
-00:05:13.822 --> 00:05:18.438
+00:05:14.371 --> 00:05:18.987
 This puts robot actions in the same token framework as language and vision.
 
-00:05:18.438 --> 00:05:24.697
+00:05:18.987 --> 00:05:25.246
 It also opens a new question: tokenizers built for consistency, not only for reconstruction.

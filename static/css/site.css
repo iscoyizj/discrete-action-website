@@ -161,7 +161,7 @@ h3.sub{font-size:21px;margin-bottom:8px}
 .trials button.no{background:#F6DEDA;color:var(--wrong)}
 .trials button[aria-pressed="true"]{border-color:var(--ink)}
 @media (max-width:760px){.grid4,.grid4.sim{grid-template-columns:1fr 1fr}}
-@media (max-width:460px){.trials span{display:none}.trials button{width:26px}}
+@media (max-width:460px){.trials span{display:none}.trials button{width:26px}.clip .tag small{display:none}}
 
 /* ---------- Push-T scenes (same look as the explainer video) ---------- */
 .scene-card{padding:24px 26px 18px;background:var(--paper);box-shadow:inset 0 0 0 1px var(--steel)}

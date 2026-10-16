@@ -363,7 +363,7 @@ const NOTES = {
 // =====================================================================
 // 1 = success, 0 = failure, in recording order
 const TRIALS = {"bottle":{"DF":[1,1,0,1,1],"CF":[1,1,0,1,1],"DR":[0,1,1,1,1],"CR":[0,0,1,1,1]},"pen_cap":{"DF":[1,1,1,0,0],"CF":[1,1,1,0,0],"DR":[0,1,0,1,0],"CR":[1,1,0,0,0]},"turn_mug":{"DF":[1,0,1,1,1],"CF":[1,1,0,1,1],"DR":[1,0,1,1,0],"CR":[0,1,1,0,0]}};
-const ROBOCASA = {DF: [53.9, "Mug to coffee machine"], CF: [52.3, "Close the fridge"], DR: [50.2, "Egg into the pan"], CR: [38.8, "Fish into the cabinet"]};
+const ROBOCASA = {DF: [53.9, "Mug to coffee machine"], CF: [52.7, "Close the fridge"], DR: [49.2, "Egg into the pan"], CR: [38.8, "Fish into the cabinet"]};
 const chipHTML = h => `<span class="chip${FLOW[h] ? " chip-flow" : ""}" style="--c:var(--${h})">${h}</span>`;
 
 (function rollouts() {
@@ -694,7 +694,7 @@ const DF_ODD = 9, DF_FLIP = 3;                                                  
 (function fixes() {
   const svg = $("#fixes-svg"); if (!svg) return;
   chart(svg, () => {
-    const rows = [["DF", 53.9], ["CF", 52.3], ["DR", 50.2, 25.8], ["CR", 38.8]];
+    const rows = [["DF", 53.9], ["CF", 52.7], ["DR", 49.2, 27.1], ["CR", 38.8]];
     const rh = 40, top = 6, H = top + rows.length * rh + 26, W = size(svg, H), small = W < 420;
     const L = 64, R = W - 52, X = v => L + v / 60 * (R - L), bottom = top + rows.length * rh;
     [0, 20, 40, 60].forEach(v => {
